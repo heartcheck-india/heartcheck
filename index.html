@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HeartCheck — Know your next test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#15212E;
+    --ink-soft:#415060;
+    --paper:#F7F8F6;
+    --card:#FFFFFF;
+    --line:#E2E6E3;
+    --pulse:#E4572E;
+    --pulse-soft:#FBEAE3;
+    --go:#0E7C6B;
+    --go-soft:#E3F1EE;
+    --warn:#C98A1B;
+    --warn-soft:#F9F0DD;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    line-height:1.55;
+    font-size:16px;
+  }
+  .wrap{max-width:560px;margin:0 auto;padding:0 16px 64px;}
+
+  /* ---------- header ---------- */
+  header{
+    background:var(--ink);
+    color:#fff;
+    padding:36px 16px 30px;
+    margin:0 -16px 24px;
+  }
+  header .inner{max-width:560px;margin:0 auto;padding:0 16px;}
+  h1{
+    font-family:'Bricolage Grotesque','Inter',sans-serif;
+    font-weight:800;
+    font-size:34px;
+    line-height:1.1;
+    letter-spacing:-0.5px;
+  }
+  h1 .accent{color:var(--pulse);}
+  header p{color:#B9C2CC;margin-top:10px;font-size:15px;max-width:42ch;}
+  .pulseline{margin-top:22px;display:block;width:100%;height:34px;}
+
+  /* ---------- sections ---------- */
+  section{margin-bottom:28px;}
+  h2{
+    font-family:'Bricolage Grotesque','Inter',sans-serif;
+    font-weight:600;
+    font-size:20px;
+    margin-bottom:4px;
+  }
+  .sub{color:var(--ink-soft);font-size:14px;margin-bottom:14px;}
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px;
+  }
+
+  /* ---------- chips ---------- */
+  .chips{display:flex;flex-wrap:wrap;gap:10px;}
+  .chip{
+    border:1.5px solid var(--line);
+    background:var(--card);
+    border-radius:999px;
+    padding:10px 16px;
+    font-size:15px;
+    font-family:inherit;
+    color:var(--ink);
+    cursor:pointer;
+    transition:all .15s ease;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .chip:focus-visible{outline:3px solid var(--ink);outline-offset:2px;}
+  .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff;}
+  .chips.danger .chip[aria-pressed="true"]{background:var(--pulse);border-color:var(--pulse);}
+
+  /* ---------- inputs ---------- */
+  .row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+  .field{flex:1;min-width:130px;}
+  label{display:block;font-size:13px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;}
+  input[type=number],select{
+    width:100%;
+    padding:12px;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    font-size:16px;
+    font-family:inherit;
+    background:var(--card);
+    color:var(--ink);
+  }
+  input:focus-visible,select:focus-visible{outline:3px solid var(--ink);outline-offset:1px;}
+
+  .checkbtn{
+    width:100%;
+    margin-top:8px;
+    background:var(--pulse);
+    color:#fff;
+    border:none;
+    border-radius:12px;
+    padding:16px;
+    font-size:17px;
+    font-weight:600;
+    font-family:inherit;
+    cursor:pointer;
+  }
+  .checkbtn:focus-visible{outline:3px solid var(--ink);outline-offset:2px;}
+
+  /* ---------- result ---------- */
+  #result{display:none;scroll-margin-top:16px;}
+  .verdict{
+    border-radius:var(--radius);
+    padding:18px;
+    margin-bottom:18px;
+    border:1.5px solid;
+  }
+  .verdict.urgent{background:var(--pulse-soft);border-color:var(--pulse);}
+  .verdict.moderate{background:var(--warn-soft);border-color:var(--warn);}
+  .verdict.calm{background:var(--go-soft);border-color:var(--go);}
+  .verdict h3{font-family:'Bricolage Grotesque',sans-serif;font-size:19px;margin-bottom:6px;}
+  .verdict p{font-size:15px;color:var(--ink-soft);}
+  .verdict p strong{color:var(--ink);}
+
+  /* ---------- pathway ladder (signature) ---------- */
+  .ladder{list-style:none;}
+  .rung{
+    position:relative;
+    padding:14px 14px 14px 46px;
+    border:1.5px solid var(--line);
+    border-radius:12px;
+    margin-bottom:10px;
+    background:var(--card);
+    opacity:.55;
+  }
+  .rung::before{
+    content:"";
+    position:absolute;
+    left:18px;top:20px;
+    width:12px;height:12px;
+    border-radius:50%;
+    border:2.5px solid var(--ink-soft);
+    background:var(--card);
+  }
+  .rung.active{
+    opacity:1;
+    border-color:var(--ink);
+    box-shadow:0 2px 10px rgba(21,33,46,.08);
+  }
+  .rung.active::before{background:var(--pulse);border-color:var(--pulse);}
+  .rung.active .you{
+    display:inline-block;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:#fff;
+    background:var(--pulse);
+    border-radius:999px;
+    padding:2px 9px;
+    margin-bottom:6px;
+  }
+  .rung .you{display:none;}
+  .rung h4{font-size:15.5px;font-weight:600;}
+  .rung p{font-size:14px;color:var(--ink-soft);margin-top:3px;}
+
+  .note{
+    font-size:13.5px;
+    color:var(--ink-soft);
+    background:var(--card);
+    border:1px dashed var(--line);
+    border-radius:10px;
+    padding:12px 14px;
+    margin-top:14px;
+  }
+
+  .copybtn{
+    width:100%;
+    margin-top:14px;
+    background:var(--card);
+    color:var(--ink);
+    border:1.5px solid var(--ink);
+    border-radius:12px;
+    padding:14px;
+    font-size:15.5px;
+    font-weight:600;
+    font-family:inherit;
+    cursor:pointer;
+  }
+  .copybtn:focus-visible{outline:3px solid var(--pulse);outline-offset:2px;}
+
+  /* ---------- glossary ---------- */
+  details{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    margin-bottom:10px;
+    overflow:hidden;
+  }
+  summary{
+    padding:14px 16px;
+    font-weight:600;
+    font-size:15px;
+    cursor:pointer;
+    list-style:none;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  summary::-webkit-details-marker{display:none;}
+  summary::after{content:"+";font-size:18px;color:var(--ink-soft);}
+  details[open] summary::after{content:"–";}
+  details .body{padding:0 16px 14px;font-size:14.5px;color:var(--ink-soft);}
+  details .body strong{color:var(--ink);}
+  .tag{
+    display:inline-block;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    border-radius:999px;
+    padding:2px 9px;
+    margin-right:8px;
+  }
+  .tag.screen{background:var(--go-soft);color:var(--go);}
+  .tag.diagnose{background:var(--warn-soft);color:var(--warn);}
+  .tag.invasive{background:var(--pulse-soft);color:var(--pulse);}
+
+  /* ---------- CPR ---------- */
+  .cpr{
+    background:var(--ink);
+    color:#fff;
+    border-radius:var(--radius);
+    padding:20px;
+  }
+  .cpr h2{color:#fff;}
+  .cpr ol{margin:12px 0 0 20px;}
+  .cpr li{margin-bottom:10px;font-size:15px;color:#D5DCE3;}
+  .cpr li strong{color:#fff;}
+  .cpr .beat{color:var(--pulse);font-weight:600;}
+
+  footer{
+    margin-top:30px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    border-top:1px solid var(--line);
+    padding-top:16px;
+  }
+
+  @media (prefers-reduced-motion:no-preference){
+    .verdict{animation:rise .35s ease;}
+    @keyframes rise{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="inner">
+    <h1>Heart<span class="accent">Check</span></h1>
+    <p>Two minutes to find out which heart test you should actually ask your doctor about — and which ones you can skip for now.</p>
+    <svg class="pulseline" viewBox="0 0 560 34" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 17 H180 L196 17 L206 4 L218 30 L228 12 L236 17 H560" fill="none" stroke="#E4572E" stroke-width="2"/>
+    </svg>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ============ STEP 1: RED FLAGS ============ -->
+  <section>
+    <h2>Step 1 · Any of these, recently?</h2>
+    <p class="sub">Tap any that apply. Be honest — this is the part people ignore.</p>
+    <div class="chips danger" id="flags">
+      <button class="chip" aria-pressed="false">Chest pain / pressure / heaviness</button>
+      <button class="chip" aria-pressed="false">Breathless on routine effort</button>
+      <button class="chip" aria-pressed="false">Jaw, arm or upper-back ache on exertion</button>
+      <button class="chip" aria-pressed="false">Fainting or near-fainting</button>
+      <button class="chip" aria-pressed="false">Palpitations with dizziness</button>
+      <button class="chip" aria-pressed="false">Unusual fatigue doing normal things</button>
+    </div>
+  </section>
+
+  <!-- ============ STEP 2: RISK FACTORS ============ -->
+  <section>
+    <h2>Step 2 · About you</h2>
+    <p class="sub">No data leaves your phone — everything runs right here in your browser.</p>
+    <div class="card">
+      <div class="row">
+        <div class="field">
+          <label for="age">Age</label>
+          <input type="number" id="age" min="18" max="100" inputmode="numeric" placeholder="e.g. 44">
+        </div>
+        <div class="field">
+          <label for="sex">Sex</label>
+          <select id="sex">
+            <option value="">Select</option>
+            <option value="m">Male</option>
+            <option value="f">Female</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="history">Ever diagnosed with heart disease, or had a heart procedure?</label>
+          <select id="history">
+            <option value="none">No, never</option>
+            <option value="clear">Had an angiography — arteries were clear</option>
+            <option value="disease">Had a stent / angioplasty / bypass / heart attack</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="lipid">Last lipid profile (LDL / cholesterol)</label>
+          <select id="lipid">
+            <option value="unknown">Never tested / don't remember</option>
+            <option value="normal">Tested in last 2 yrs — normal</option>
+            <option value="high">Tested — was high / on statins</option>
+          </select>
+        </div>
+      </div>
+      <label style="margin-bottom:8px;">Tap all that apply</label>
+      <div class="chips" id="factors">
+        <button class="chip" data-k="smoke" aria-pressed="false">Smoke / quit &lt; 5 yrs ago</button>
+        <button class="chip" data-k="diab" aria-pressed="false">Diabetes or prediabetes</button>
+        <button class="chip" data-k="bp" aria-pressed="false">High BP (or on BP meds)</button>
+        <button class="chip" data-k="fam" aria-pressed="false">Parent / sibling had heart disease early (men &lt;55, women &lt;65)</button>
+        <button class="chip" data-k="sed" aria-pressed="false">Mostly sedentary</button>
+        <button class="chip" data-k="wt" aria-pressed="false">Overweight (belly fat counts)</button>
+      </div>
+      <button class="checkbtn" id="go">Show my next step</button>
+    </div>
+  </section>
+
+  <!-- ============ RESULT ============ -->
+  <section id="result" aria-live="polite">
+    <h2>Your next step</h2>
+    <div id="verdict"></div>
+    <ol class="ladder" id="ladder">
+      <li class="rung" id="r1">
+        <span class="you">You start here</span>
+        <h4>Tier 1 · Baseline numbers, every 2–3 years</h4>
+        <p>Lipid profile + HbA1c (blood sugar) + BP reading. Cheap, fasting blood test, any lab.</p>
+      </li>
+      <li class="rung" id="r2">
+        <span class="you">You start here</span>
+        <h4>Tier 2 · Annual panel + resting ECG</h4>
+        <p>Same tests, every year, plus an ECG as a baseline. Discuss results with a physician, not just the lab report.</p>
+      </li>
+      <li class="rung" id="r3">
+        <span class="you">You start here</span>
+        <h4>Tier 3 · Ask about a CT Coronary Calcium Score</h4>
+        <p>A 10-minute non-invasive scan that directly measures plaque in your arteries — the thing ECG and lipid tests can't see. Roughly ₹3,000–8,000. Your doctor may add a TMT or CT angiography based on the score.</p>
+      </li>
+      <li class="rung" id="r4">
+        <span class="you">See a doctor first</span>
+        <h4>Symptoms? Skip screening — see a doctor now</h4>
+        <p>Screening tests are for people who feel fine. Symptoms need proper evaluation this week, not an annual package.</p>
+      </li>
+      <li class="rung" id="r5">
+        <span class="you">You're here</span>
+        <h4>Known heart disease · Maintenance, not screening</h4>
+        <p>Stent, bypass, or a past heart attack means the screening ladder no longer applies — your cardiologist's follow-up plan does. Medicines, targets, and reviews are the whole game now.</p>
+      </li>
+    </ol>
+    <div class="note" id="extranote"></div>
+    <button class="copybtn" id="copy">Copy my result to share in the group</button>
+  </section>
+
+  <!-- ============ GLOSSARY ============ -->
+  <section>
+    <h2>What each test actually does</h2>
+    <p class="sub">Because "I had an ECG, I'm fine" is how people get surprised.</p>
+
+    <details>
+      <summary>Lipid profile (LDL, HDL, cholesterol)</summary>
+      <div class="body"><span class="tag screen">Screening</span>Measures the raw material of blockages. <strong>Catches:</strong> your long-term risk. <strong>Misses:</strong> whether plaque has already formed. Normal lipids today don't erase 20 years of bad lipids.</div>
+    </details>
+    <details>
+      <summary>Resting ECG</summary>
+      <div class="body"><span class="tag screen">Screening</span>Records the heart's electrical rhythm for a few seconds at rest. <strong>Catches:</strong> rhythm problems, signs of an old heart attack. <strong>Misses:</strong> most blockages. An artery can be 90% blocked with a completely normal resting ECG — this is exactly what happened in the story that started this. ECG ≠ blockage test.</div>
+    </details>
+    <details>
+      <summary>TMT / Stress test (treadmill)</summary>
+      <div class="body"><span class="tag screen">Screening</span>ECG while you exercise — blockages that hide at rest often show under load. <strong>Catches:</strong> blockages big enough to limit blood flow (typically &gt;70%). <strong>Misses:</strong> smaller plaques, and it has false alarms. Useful, but not the final word.</div>
+    </details>
+    <details>
+      <summary>CT Coronary Calcium Score</summary>
+      <div class="body"><span class="tag screen">Screening</span>A quick CT scan that counts calcified plaque in your coronary arteries. Score 0 = very low risk for years; higher scores = plaque is already there, act now. <strong>This is usually the test the "should I worry?" question is really asking for.</strong> Non-invasive, no injection, ~10 minutes.</div>
+    </details>
+    <details>
+      <summary>CT Coronary Angiography</summary>
+      <div class="body"><span class="tag diagnose">Diagnostic</span>CT scan with dye injected into a vein — shows the arteries and blockages in detail without surgery. Often the next step after a high calcium score or suspicious symptoms.</div>
+    </details>
+    <details>
+      <summary>Invasive (catheter) angiography</summary>
+      <div class="body"><span class="tag invasive">Procedure</span>A tube goes from your wrist/groin into the heart's arteries. The gold standard — and often the same sitting where a stent is placed. <strong>But it's not a screening test.</strong> It carries small but real risks, so doctors order it when other tests or symptoms point to a problem, not as an annual checkup. If someone tells you "everyone over 40 should just get an angiography," they mean well, but the non-invasive CT options above are the right starting point.</div>
+    </details>
+  </section>
+
+  <!-- ============ CPR ============ -->
+  <section>
+    <div class="cpr">
+      <h2>If someone collapses</h2>
+      <ol>
+        <li><strong>Tap & shout.</strong> No response, no normal breathing? Assume cardiac arrest.</li>
+        <li><strong>Point at one person:</strong> "You — call 108 and find an AED."</li>
+        <li><strong>Push hard and fast</strong> on the centre of the chest — <span class="beat">100–120 pushes per minute</span>, about 5 cm deep. Don't stop until help arrives. Hands-only is enough.</li>
+        <li><strong>Use the AED</strong> the moment it arrives — it talks you through everything.</li>
+      </ol>
+      <p style="margin-top:14px;font-size:14px;color:#B9C2CC;">Every minute without CPR cuts survival by ~10%. A half-day course makes you the reason someone's kids still have a father. Ask in the group — we're organising one.</p>
+    </div>
+  </section>
+
+  <footer>
+    Made by a friend, for friends — after losing two of ours. This is general health education, not medical advice; it can't see your reports or examine you. Decisions about tests and treatment belong with you and a qualified doctor. If you have symptoms, please don't wait for a screening package.
+  </footer>
+</div>
+
+<script>
+  // ----- chip toggling -----
+  document.querySelectorAll('.chip').forEach(function(c){
+    c.addEventListener('click',function(){
+      c.setAttribute('aria-pressed', c.getAttribute('aria-pressed')==='true' ? 'false' : 'true');
+    });
+  });
+
+  var lastSummary = '';
+
+  document.getElementById('go').addEventListener('click', function(){
+    var flags = document.querySelectorAll('#flags .chip[aria-pressed="true"]').length;
+    var age = parseInt(document.getElementById('age').value, 10);
+    var sex = document.getElementById('sex').value;
+    var lipid = document.getElementById('lipid').value;
+    var history = document.getElementById('history').value;
+
+    var on = {};
+    document.querySelectorAll('#factors .chip').forEach(function(c){
+      on[c.dataset.k] = c.getAttribute('aria-pressed')==='true';
+    });
+
+    if(isNaN(age) || age < 18 || age > 100){
+      alert('Please enter your age (18–100) so the guidance fits you.');
+      return;
+    }
+
+    // majors: established risk factors
+    var majors = 0;
+    if(on.smoke) majors++;
+    if(on.diab) majors++;
+    if(on.bp) majors++;
+    if(on.fam) majors++;
+    if(lipid==='high') majors++;
+    var supporting = (on.sed?1:0) + (on.wt?1:0);
+
+    var tier, vclass, vtitle, vtext;
+
+    if(flags > 0){
+      tier = 4; vclass = 'urgent';
+      vtitle = 'Please see a doctor this week.';
+      vtext = 'You ticked a symptom. Symptoms change everything — screening packages and annual checkups are for people who feel fine. Book a physician or cardiologist visit now and mention exactly what you ticked. <strong>If symptoms are happening right now, call 108.</strong>' + (history==='disease' ? ' <strong>With your cardiac history, treat any new symptom as an emergency, not a wait-and-watch.</strong>' : '');
+    } else if(history === 'disease'){
+      tier = 5; vclass = 'urgent';
+      vtitle = 'You\'re past screening — this is maintenance now.';
+      vtext = 'With a stent, bypass, or past heart attack, the question is no longer "do I have heart disease?" — it\'s "am I managing it well?" That means: <strong>never pause your medicines without your cardiologist</strong> (feeling fine is the medicines working, not the disease gone), LDL targets much stricter than everyone else\'s (often below 55–70 mg/dL — ask yours), regular cardiology reviews on the schedule your doctor set, and treating any new chest symptom as an emergency. Your most valuable contribution to the group: tell them what the wake-up call was like — it lands harder than any test.';
+    } else if((age >= 40 && majors >= 2) || (on.fam && majors >= 2) || (on.fam && age >= 50)){
+      tier = 3; vclass = 'urgent';
+      vtitle = 'Your risk factors have stacked up — get a direct look.';
+      vtext = 'With <strong>' + majors + ' major risk factor' + (majors>1?'s':'') + '</strong> at age ' + age + ', annual blood tests alone leave a blind spot. Ask your doctor about a <strong>CT coronary calcium score</strong> — it answers the question your group chat was really asking: "is there already plaque in my arteries?"';
+    } else if(age >= 40 || majors >= 1){
+      tier = 2; vclass = 'moderate';
+      vtitle = 'Annual checkup territory — done properly.';
+      vtext = 'At ' + age + (majors? ' with ' + majors + ' risk factor' + (majors>1?'s':'') : '') + ', a yearly lipid profile + HbA1c + BP + resting ECG is the right rhythm. If your father or a sibling had early heart disease, mention it — it may move you up a tier.';
+    } else {
+      tier = 1; vclass = 'calm';
+      vtitle = 'You\'re in good shape — build the habit now.';
+      vtext = 'No red flags and no major risk factors at ' + age + '. A baseline lipid profile + HbA1c every 2–3 years is enough. The friends we lost were once exactly here — the habit matters more than the result.';
+    }
+
+    document.getElementById('verdict').innerHTML =
+      '<div class="verdict ' + vclass + '"><h3>' + vtitle + '</h3><p>' + vtext + '</p></div>';
+
+    // ladder highlighting
+    [1,2,3,4,5].forEach(function(i){
+      document.getElementById('r'+i).classList.toggle('active', i===tier);
+    });
+
+    // extra notes
+    var notes = [];
+    if(history === 'clear' && tier !== 4 && tier !== 5) notes.push('Your clear angiography is genuinely good news — but it\'s a snapshot from that day, not lifetime immunity. Plaque can build after a clear angio, so the screening rhythm above still applies to you.');
+    if(tier !== 4 && lipid === 'unknown') notes.push('You\'ve never had (or can\'t recall) a lipid profile — make that this week\'s job regardless of tier. It\'s the cheapest information about your heart you\'ll ever buy.');
+    if(tier !== 4 && supporting > 0) notes.push('Sedentary lifestyle / weight don\'t change which test you need, but they\'re the two risk factors you can actually fix without a prescription. 30 minutes of brisk walking, 5 days a week, measurably moves the needle.');
+    if(sex === 'm' && age >= 45 && tier === 2) notes.push('Men 45+ : worth asking your doctor whether a calcium score makes sense even with few risk factors — men hit higher risk earlier.');
+    if(tier === 4) notes.push('After you\'re evaluated and cleared, come back and run this again for your screening plan.');
+    document.getElementById('extranote').innerHTML = notes.join('<br><br>') || 'Re-run this whenever something changes — a new diagnosis, a birthday ending in 0, or a scare in the friend circle.';
+
+    // shareable summary
+    var tierLabel = {1:'baseline lipid + HbA1c every 2–3 yrs', 2:'annual lipid + HbA1c + BP + ECG', 3:'annual panel + asking my doctor about a CT calcium score', 4:'seeing a doctor about symptoms first', 5:'sticking to my cardiologist\'s maintenance plan — medicines, targets, reviews'}[tier];
+    lastSummary = 'My HeartCheck: age ' + age + ', ' + majors + ' major risk factor' + (majors===1?'':'s') + '. My next step: ' + tierLabel + '. Took 2 mins — do yours: ' + location.href;
+
+    var res = document.getElementById('result');
+    res.style.display = 'block';
+    res.scrollIntoView({behavior:'smooth'});
+  });
+
+  // ----- copy -----
+  document.getElementById('copy').addEventListener('click', function(){
+    var btn = this;
+    function done(){ btn.textContent = 'Copied — paste it in the group'; setTimeout(function(){ btn.textContent = 'Copy my result to share in the group'; }, 2500); }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(lastSummary).then(done);
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = lastSummary; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta); done();
+    }
+  });
+</script>
+</body>
+</html>
