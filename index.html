@@ -259,6 +259,51 @@
     .verdict{animation:rise .35s ease;}
     @keyframes rise{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
   }
+
+  /* ---------- ASCVD calculator ---------- */
+  #ascvd{display:none;}
+  .toggle-row{display:flex;gap:8px;}
+  .toggle-row .chip{flex:1;text-align:center;font-size:14px;padding:10px;}
+  #ascvd-result{display:none;margin-top:18px;}
+  .score-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .score-box{
+    border:1.5px solid var(--line);
+    border-radius:12px;
+    padding:14px;
+    background:var(--card);
+  }
+  .score-box.featured{border-color:var(--ink);background:var(--ink);color:#fff;}
+  .score-box .lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:4px;}
+  .score-box.featured .lbl{color:#B9C2CC;}
+  .score-box .num{font-family:'Bricolage Grotesque',sans-serif;font-size:30px;font-weight:800;line-height:1;}
+  .score-box .num-sub{font-size:12px;color:var(--ink-soft);margin-top:4px;}
+  .score-box.featured .num-sub{color:#B9C2CC;}
+  .risk-band{
+    border-radius:12px;
+    padding:14px 16px;
+    margin-bottom:12px;
+    border:1.5px solid;
+    font-size:14.5px;
+  }
+  .risk-band.low{background:var(--go-soft);border-color:var(--go);}
+  .risk-band.border{background:var(--warn-soft);border-color:var(--warn);}
+  .risk-band.inter{background:var(--pulse-soft);border-color:var(--pulse);}
+  .risk-band.high{background:var(--pulse-soft);border-color:var(--pulse);}
+  .risk-band strong{display:block;font-family:'Bricolage Grotesque',sans-serif;font-size:16.5px;margin-bottom:4px;color:var(--ink);}
+  .ascvd-skip{
+    background:var(--card);
+    border:1px dashed var(--line);
+    border-radius:10px;
+    padding:14px;
+    font-size:14px;
+    color:var(--ink-soft);
+    text-align:center;
+  }
 </style>
 </head>
 <body>
@@ -376,6 +421,57 @@
     <button class="copybtn" id="copy">Copy my result to share in the group</button>
   </section>
 
+  <!-- ============ ASCVD CALCULATOR ============ -->
+  <section id="ascvd">
+    <h2>Want a number? Your 10-year risk score</h2>
+    <p class="sub">If you have your last cholesterol report handy, this gives you the percentage doctors use to decide on statins and treatment intensity. Optional — skip if you don't have the numbers.</p>
+    <div class="card" id="ascvd-card">
+      <div class="row">
+        <div class="field">
+          <label for="tc">Total cholesterol (mg/dL)</label>
+          <input type="number" id="tc" min="100" max="400" inputmode="numeric" placeholder="e.g. 195">
+        </div>
+        <div class="field">
+          <label for="hdl">HDL — the "good" one (mg/dL)</label>
+          <input type="number" id="hdl" min="15" max="120" inputmode="numeric" placeholder="e.g. 45">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="sbp">Systolic BP (the top number)</label>
+          <input type="number" id="sbp" min="80" max="220" inputmode="numeric" placeholder="e.g. 130">
+        </div>
+        <div class="field">
+          <label>Currently on any BP medication?</label>
+          <div class="toggle-row chips" id="bpmed">
+            <button class="chip" data-v="0" aria-pressed="true">No</button>
+            <button class="chip" data-v="1" aria-pressed="false">Yes</button>
+          </div>
+        </div>
+      </div>
+      <button class="checkbtn" id="calc">Calculate my risk score</button>
+    </div>
+
+    <div id="ascvd-result" aria-live="polite">
+      <div class="score-grid">
+        <div class="score-box">
+          <div class="lbl">Standard score</div>
+          <div class="num" id="raw-num">—</div>
+          <div class="num-sub">10-yr ASCVD (AHA/ACC)</div>
+        </div>
+        <div class="score-box featured">
+          <div class="lbl">Adjusted for you</div>
+          <div class="num" id="adj-num">—</div>
+          <div class="num-sub">~1.5× for South Asian risk</div>
+        </div>
+      </div>
+      <div id="risk-band" class="risk-band"></div>
+      <p class="sub" style="margin-top:6px;font-size:13px;">The score estimates your chance of a heart attack or stroke in the next 10 years, given today's numbers. It is a <em>gross</em> guide, not a diagnosis. The South Asian adjustment is an approximation — Indian-origin people develop heart disease earlier and at lower numbers than the original calculator was built for. Discuss the result with your doctor; don't act on it alone.</p>
+    </div>
+
+    <div class="ascvd-skip" id="ascvd-skip" style="display:none;"></div>
+  </section>
+
   <!-- ============ GLOSSARY ============ -->
   <section>
     <h2>What each test actually does</h2>
@@ -391,7 +487,11 @@
     </details>
     <details>
       <summary>TMT / Stress test (treadmill)</summary>
-      <div class="body"><span class="tag screen">Screening</span>ECG while you exercise — blockages that hide at rest often show under load. <strong>Catches:</strong> blockages big enough to limit blood flow (typically &gt;70%). <strong>Misses:</strong> smaller plaques, and it has false alarms. Useful, but not the final word.</div>
+      <div class="body"><span class="tag screen">Screening</span>ECG while you exercise — blockages that hide at rest often show under load. <strong>Catches:</strong> blockages big enough to limit blood flow (typically &gt;70%). <strong>Misses:</strong> smaller plaques, and it has false alarms. Useful, but not the final word. <strong>Important:</strong> a TMT should be ordered and interpreted by an expert cardiologist, not bought from a diagnostic chain as part of a "package." The report alone can mislead; the cardiologist's reading is what matters.</div>
+    </details>
+    <details>
+      <summary>Echocardiogram (Echo)</summary>
+      <div class="body"><span class="tag screen">Screening</span>An ultrasound of the heart — shows the heart muscle, valves, and pumping function. <strong>Catches:</strong> valve problems, weak pumping, damage from a past heart attack. <strong>Misses:</strong> coronary blockages themselves — that's not what it's for. <strong>Like TMT:</strong> get this done with an expert cardiologist who interprets it personally, not a one-off package scan.</div>
     </details>
     <details>
       <summary>CT Coronary Calcium Score</summary>
@@ -442,6 +542,13 @@
   // ----- chip toggling -----
   document.querySelectorAll('.chip').forEach(function(c){
     c.addEventListener('click',function(){
+      var parent = c.parentElement;
+      if(parent && parent.id === 'bpmed'){
+        // radio behaviour: exactly one pressed
+        parent.querySelectorAll('.chip').forEach(function(x){ x.setAttribute('aria-pressed','false'); });
+        c.setAttribute('aria-pressed','true');
+        return;
+      }
       c.setAttribute('aria-pressed', c.getAttribute('aria-pressed')==='true' ? 'false' : 'true');
     });
   });
@@ -522,6 +629,111 @@
     var res = document.getElementById('result');
     res.style.display = 'block';
     res.scrollIntoView({behavior:'smooth'});
+
+    // ---- ASCVD section visibility ----
+    var ascvdSec = document.getElementById('ascvd');
+    var ascvdCard = document.getElementById('ascvd-card');
+    var ascvdSkip = document.getElementById('ascvd-skip');
+    var ascvdResult = document.getElementById('ascvd-result');
+    // store inputs for calculator
+    window._hc = {age:age, sex:sex, smoke:!!on.smoke, diab:!!on.diab};
+    if(tier === 4 || tier === 5){
+      ascvdSec.style.display = 'none';
+    } else if(age < 40 || age > 79){
+      ascvdSec.style.display = 'block';
+      ascvdCard.style.display = 'none';
+      ascvdResult.style.display = 'none';
+      ascvdSkip.style.display = 'block';
+      ascvdSkip.textContent = age < 40
+        ? 'The risk score below is only validated for ages 40–79. For you, the lever is lifestyle — your numbers today set up the next 20 years.'
+        : 'The risk score below is only validated for ages 40–79. Beyond that, your cardiologist judges treatment intensity individually.';
+    } else {
+      ascvdSec.style.display = 'block';
+      ascvdCard.style.display = 'block';
+      ascvdSkip.style.display = 'none';
+    }
+  });
+
+  // ----- ASCVD calculator -----
+  function ascvdRisk(p){
+    // 2013 ACC/AHA Pooled Cohort Equations, "White or Other" coefficients
+    var lnAge = Math.log(p.age);
+    var lnTc = Math.log(p.tc);
+    var lnHdl = Math.log(p.hdl);
+    var lnSbp = Math.log(p.sbp);
+    var smk = p.smoke ? 1 : 0;
+    var dm = p.diab ? 1 : 0;
+    var s, mean, baseline;
+    if(p.sex === 'm'){
+      s = 12.344*lnAge
+        + 11.853*lnTc
+        + (-2.664)*(lnAge*lnTc)
+        + (-7.990)*lnHdl
+        + 1.769*(lnAge*lnHdl)
+        + (p.bpmed ? 1.797 : 1.764)*lnSbp
+        + 7.837*smk
+        + (-1.795)*(lnAge*smk)
+        + 0.658*dm;
+      mean = 61.18; baseline = 0.9144;
+    } else {
+      s = (-29.799)*lnAge
+        + 4.884*(lnAge*lnAge)
+        + 13.540*lnTc
+        + (-3.114)*(lnAge*lnTc)
+        + (-13.578)*lnHdl
+        + 3.149*(lnAge*lnHdl)
+        + (p.bpmed ? 2.019 : 1.957)*lnSbp
+        + 7.574*smk
+        + (-1.665)*(lnAge*smk)
+        + 0.661*dm;
+      mean = -29.18; baseline = 0.9665;
+    }
+    var risk = 1 - Math.pow(baseline, Math.exp(s - mean));
+    return risk * 100;
+  }
+
+  document.getElementById('calc').addEventListener('click', function(){
+    var tc = parseInt(document.getElementById('tc').value, 10);
+    var hdl = parseInt(document.getElementById('hdl').value, 10);
+    var sbp = parseInt(document.getElementById('sbp').value, 10);
+    var bpmedChip = document.querySelector('#bpmed .chip[aria-pressed="true"]');
+    var bpmed = bpmedChip && bpmedChip.dataset.v === '1';
+
+    if(isNaN(tc) || tc < 100 || tc > 400){ alert('Please enter total cholesterol (typical range 130–320 mg/dL).'); return; }
+    if(isNaN(hdl) || hdl < 15 || hdl > 120){ alert('Please enter HDL cholesterol (typical range 25–90 mg/dL).'); return; }
+    if(isNaN(sbp) || sbp < 80 || sbp > 220){ alert('Please enter systolic BP — the top number (typical 100–180 mmHg).'); return; }
+    if(!window._hc){ alert('Please fill the first form above and click "Show my next step" first.'); return; }
+
+    var raw = ascvdRisk({age:window._hc.age, sex:window._hc.sex, tc:tc, hdl:hdl, sbp:sbp, bpmed:bpmed, smoke:window._hc.smoke, diab:window._hc.diab});
+    var adj = raw * 1.5; // South Asian adjustment
+
+    document.getElementById('raw-num').textContent = raw.toFixed(1) + '%';
+    document.getElementById('adj-num').textContent = adj.toFixed(1) + '%';
+
+    var band = document.getElementById('risk-band');
+    var bandClass, bandTitle, bandText;
+    if(adj < 5){
+      bandClass = 'low';
+      bandTitle = 'Low risk band';
+      bandText = 'Less than 1 in 20 chance of a heart attack or stroke in the next 10 years. Keep your numbers where they are — that\'s the whole job at this band. Re-check every 2–3 years.';
+    } else if(adj < 7.5){
+      bandClass = 'border';
+      bandTitle = 'Borderline band';
+      bandText = 'In the grey zone where lifestyle changes (diet, walking, weight, no smoking) are usually the first move. Your doctor may consider a statin if you have additional concerns like a strong family history or a high calcium score. Worth a conversation.';
+    } else if(adj < 20){
+      bandClass = 'inter';
+      bandTitle = 'Intermediate risk band — worth a real conversation';
+      bandText = 'At this band, current guidelines commonly recommend statin therapy alongside lifestyle. Make a focused appointment with your doctor to discuss it — bring this number. A calcium score can help refine the decision either way.';
+    } else {
+      bandClass = 'high';
+      bandTitle = 'High risk band — don\'t sit on this';
+      bandText = 'A 1-in-5 or higher chance over 10 years. Aggressive treatment of cholesterol and BP is usually recommended. Book a cardiologist consult, not just a GP visit, and don\'t delay it past this month.';
+    }
+    band.className = 'risk-band ' + bandClass;
+    band.innerHTML = '<strong>' + bandTitle + '</strong>' + bandText;
+
+    document.getElementById('ascvd-result').style.display = 'block';
+    document.getElementById('ascvd-result').scrollIntoView({behavior:'smooth', block:'start'});
   });
 
   // ----- copy -----
