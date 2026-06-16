@@ -304,6 +304,22 @@
     color:var(--ink-soft);
     text-align:center;
   }
+
+  /* ---------- per-symptom advice list ---------- */
+  #symptom-alert .sa-list{list-style:none;margin:12px 0 0;padding:0;}
+  #symptom-alert .sa-list li{background:rgba(255,255,255,0.65);border-radius:10px;padding:11px 13px;margin-bottom:8px;}
+  #symptom-alert .sa-list li strong.sa-name{display:block;font-size:14.5px;color:var(--ink);margin-bottom:4px;}
+  #symptom-alert .sa-list li .sa-tip{font-size:14px;color:var(--ink-soft);}
+  #symptom-alert .sa-emergency{margin-top:14px;font-size:14.5px;}
+
+  /* ---------- personal context line (replaces colored verdict box) ---------- */
+  .context-line{
+    font-size:16px;
+    color:var(--ink);
+    margin:6px 0 16px;
+    line-height:1.55;
+  }
+  .context-line strong{color:var(--ink);}
 </style>
 </head>
 <body>
@@ -325,17 +341,18 @@
     <h2>Step 1 · Any of these, recently?</h2>
     <p class="sub">Tap any that apply. Be honest — this is the part people ignore.</p>
     <div class="chips danger" id="flags">
-      <button class="chip" aria-pressed="false">Chest pain / pressure / heaviness</button>
-      <button class="chip" aria-pressed="false">Breathless on routine effort</button>
-      <button class="chip" aria-pressed="false">Jaw, arm or upper-back ache on exertion</button>
-      <button class="chip" aria-pressed="false">Fainting or near-fainting</button>
-      <button class="chip" aria-pressed="false">Palpitations with dizziness</button>
-      <button class="chip" aria-pressed="false">Unusual fatigue doing normal things</button>
+      <button class="chip" data-k="chest" aria-pressed="false">Chest pain / pressure / heaviness</button>
+      <button class="chip" data-k="breath" aria-pressed="false">Breathless on routine effort</button>
+      <button class="chip" data-k="referred" aria-pressed="false">Jaw, arm or upper-back ache on exertion</button>
+      <button class="chip" data-k="faint" aria-pressed="false">Fainting or near-fainting</button>
+      <button class="chip" data-k="palp" aria-pressed="false">Palpitations with dizziness</button>
+      <button class="chip" data-k="fatigue" aria-pressed="false">Unusual fatigue doing normal things</button>
     </div>
+    <div id="symptom-alert" class="verdict urgent" style="display:none;margin-top:16px;"></div>
   </section>
 
   <!-- ============ STEP 2: RISK FACTORS ============ -->
-  <section>
+  <section id="step2">
     <h2>Step 2 · About you</h2>
     <p class="sub">No data leaves your phone — everything runs right here in your browser.</p>
     <div class="card">
@@ -394,7 +411,7 @@
       <li class="rung" id="r1">
         <span class="you">You start here</span>
         <h4>One simple blood test, every 2–3 years</h4>
-        <p>Get your cholesterol (ask the lab for a "lipid profile") and blood sugar ("HbA1c") checked, plus a BP reading. One visit to any lab before breakfast, under ₹800, results the same day.</p>
+        <p>Get your cholesterol (ask the lab for a "lipid profile") and blood sugar ("HbA1c") checked, plus a BP reading. One fasting visit to any lab — results usually the same day.</p>
       </li>
       <li class="rung" id="r2">
         <span class="you">You start here</span>
@@ -404,12 +421,12 @@
       <li class="rung" id="r3">
         <span class="you">You start here</span>
         <h4>Yearly check-up + a 10-minute heart scan</h4>
-        <p>Along with the yearly tests, ask your doctor about a "CT calcium score" — a quick scan, no needles in your arteries, that shows if plaque has already started building. That's the thing blood tests and ECG simply can't see. Around ₹3,000–8,000. Based on the score, your doctor decides if anything more is needed.</p>
+        <p>Along with the yearly tests, ask your doctor about a "CT calcium score" — a quick scan, no needles in your arteries, that shows if plaque has already started building. That's the thing blood tests and ECG simply can't see. Based on the score, your doctor decides if anything more is needed.</p>
       </li>
       <li class="rung" id="r4">
         <span class="you">See a doctor first</span>
-        <h4>Feeling symptoms? That changes everything</h4>
-        <p>Forget the health package for now — see a doctor this week and describe exactly what you're feeling. Everything else on this list is for people who feel completely fine.</p>
+        <h4>Symptoms — see a doctor first</h4>
+        <p>You're on this path because you ticked a red flag at the top.</p>
       </li>
       <li class="rung" id="r5">
         <span class="you">You're here</span>
@@ -423,8 +440,8 @@
 
   <!-- ============ ASCVD CALCULATOR ============ -->
   <section id="ascvd">
-    <h2>Want a number? Your 10-year risk score</h2>
-    <p class="sub">If you have your last cholesterol report handy, this gives you the percentage doctors use to decide on statins and treatment intensity. Optional — skip if you don't have the numbers.</p>
+    <h2>Get your 10-year risk percentage</h2>
+    <p class="sub">Lipid reports give you raw numbers. This calculates the 10-year heart-attack-and-stroke risk percentage that drives treatment decisions — and that most clinics in India don't compute or share. Includes the South Asian adjustment standard calculators skip.</p>
     <div class="card" id="ascvd-card">
       <div class="row">
         <div class="field">
@@ -525,7 +542,7 @@
       <h2>If someone collapses</h2>
       <ol>
         <li><strong>Tap & shout.</strong> No response, no normal breathing? Assume cardiac arrest.</li>
-        <li><strong>Point at one person:</strong> "You — call 108 and find an AED."</li>
+        <li><strong>Point at one person:</strong> "You — call 112 or 108 and find an AED."</li>
         <li><strong>Push hard and fast</strong> on the centre of the chest — <span class="beat">100–120 pushes per minute</span>, about 5 cm deep. Don't stop until help arrives. Hands-only is enough.</li>
         <li><strong>Use the AED</strong> the moment it arrives — it talks you through everything.</li>
       </ol>
@@ -539,6 +556,58 @@
 </div>
 
 <script>
+  // ----- per-symptom advice (Step 1) -----
+  var symptomInfo = {
+    chest: 'This is the most direct warning sign of a possible heart attack. Don\'t drive yourself anywhere. Sit or lie down, stay calm, and call 112 or 108. If you have aspirin at home and aren\'t allergic, chew (don\'t swallow) one tablet while waiting for help.',
+    breath: 'New or worsening breathlessness during ordinary activities can mean the heart is struggling to pump efficiently. Don\'t push through it. See a doctor today — go to an emergency department if it gets worse or comes with chest discomfort.',
+    referred: 'Pain in the jaw, arm or upper back that appears with effort and eases with rest is a classic "referred pain" pattern from blocked coronary arteries — often more reliable than chest pain itself. This needs same-day cardiac evaluation, not a future appointment.',
+    faint: 'Fainting or near-fainting can mean your heart briefly failed to keep blood flowing to the brain. Even if you feel fine now, get evaluated today — an ECG and a doctor\'s exam are the minimum. If it happens again, go straight to an emergency department.',
+    palp: 'Palpitations combined with dizziness point to a rhythm disturbance that\'s reducing blood flow. See a cardiologist this week and ask for an ECG; you may need a 24-hour Holter monitor. If episodes are frequent or you nearly black out, escalate to urgent care.',
+    fatigue: 'Disproportionate fatigue doing things that used to feel easy can be a subtle heart signal — especially in women, older adults and people with diabetes, who often present without classic chest pain. Get a full evaluation this week: ECG, blood tests and a thorough symptom history.'
+  };
+
+  function updateSymptomAlert(){
+    var pressed = document.querySelectorAll('#flags .chip[aria-pressed="true"]');
+    var alert = document.getElementById('symptom-alert');
+    var step2 = document.getElementById('step2');
+    var result = document.getElementById('result');
+    var ascvd = document.getElementById('ascvd');
+
+    if(pressed.length === 0){
+      alert.style.display = 'none';
+      alert.innerHTML = '';
+      step2.style.display = 'block';
+      return;
+    }
+
+    // Symptoms present: hide Step 2 and any earlier result
+    step2.style.display = 'none';
+    if(result) result.style.display = 'none';
+    if(ascvd) ascvd.style.display = 'none';
+
+    var title, body;
+    if(pressed.length === 1){
+      title = "Please see a doctor — don't wait.";
+      body = "Even one of these symptoms can signal a serious problem. What you ticked, specifically:";
+    } else {
+      title = "See a doctor today or tomorrow.";
+      body = "Having <strong>more than one</strong> of these together is more concerning than any single one — they may be related. What you ticked, specifically:";
+    }
+    var items = '';
+    pressed.forEach(function(c){
+      var key = c.dataset.k;
+      var label = c.textContent.trim();
+      var tip = symptomInfo[key] || 'See a doctor as soon as possible.';
+      items += '<li><strong class="sa-name">' + label + '</strong><span class="sa-tip">' + tip + '</span></li>';
+    });
+    alert.innerHTML =
+      '<h3>' + title + '</h3>' +
+      '<p>' + body + '</p>' +
+      '<ul class="sa-list">' + items + '</ul>' +
+      '<p class="sa-emergency"><strong>If any of these are happening right now, call 112 or 108.</strong> Don\'t drive yourself.</p>';
+    alert.style.display = 'block';
+  }
+
   // ----- chip toggling -----
   document.querySelectorAll('.chip').forEach(function(c){
     c.addEventListener('click',function(){
@@ -550,6 +619,9 @@
         return;
       }
       c.setAttribute('aria-pressed', c.getAttribute('aria-pressed')==='true' ? 'false' : 'true');
+      if(parent && parent.id === 'flags'){
+        updateSymptomAlert();
+      }
     });
   });
 
@@ -581,32 +653,27 @@
     if(lipid==='high') majors++;
     var supporting = (on.sed?1:0) + (on.wt?1:0);
 
-    var tier, vclass, vtitle, vtext;
+    var tier, ctxLine;
 
     if(flags > 0){
-      tier = 4; vclass = 'urgent';
-      vtitle = 'Please see a doctor this week.';
-      vtext = 'You ticked a symptom. Symptoms change everything — screening packages and annual checkups are for people who feel fine. Book a physician or cardiologist visit now and mention exactly what you ticked. <strong>If symptoms are happening right now, call 108.</strong>' + (history==='disease' ? ' <strong>With your cardiac history, treat any new symptom as an emergency, not a wait-and-watch.</strong>' : '');
+      // Defensive: shouldn't be reachable since Step 2 is hidden when symptoms are ticked
+      tier = 4;
+      ctxLine = "You ticked a symptom — please scroll up and follow the alert at the top.";
     } else if(history === 'disease'){
-      tier = 5; vclass = 'urgent';
-      vtitle = 'You\'re past screening — this is maintenance now.';
-      vtext = 'With a stent, bypass, or past heart attack, the question is no longer "do I have heart disease?" — it\'s "am I managing it well?" That means: <strong>never pause your medicines without your cardiologist</strong> (feeling fine is the medicines working, not the disease gone), LDL targets much stricter than everyone else\'s (often below 55–70 mg/dL — ask yours), regular cardiology reviews on the schedule your doctor set, and treating any new chest symptom as an emergency. Your most valuable contribution to the group: tell them what the wake-up call was like — it lands harder than any test.';
+      tier = 5;
+      ctxLine = "With a stent, bypass or past heart attack on your record, you're past screening — maintenance is the game now:";
     } else if((age >= 40 && majors >= 2) || (on.fam && majors >= 2) || (on.fam && age >= 50)){
-      tier = 3; vclass = 'urgent';
-      vtitle = 'Your risk factors have stacked up — get a direct look.';
-      vtext = 'With <strong>' + majors + ' major risk factor' + (majors>1?'s':'') + '</strong> at age ' + age + ', blood tests alone leave a blind spot. Ask your doctor about a <strong>calcium score</strong> — a quick 10-minute scan that answers the question everyone\'s really asking: "has plaque already started building in my arteries?"';
+      tier = 3;
+      ctxLine = 'At ' + age + ' with <strong>' + majors + ' major risk factor' + (majors>1?'s':'') + '</strong>, this is worth acting on. Here\'s where you sit:';
     } else if(age >= 40 || majors >= 1){
-      tier = 2; vclass = 'moderate';
-      vtitle = 'Yearly check-up territory — done properly.';
-      vtext = 'At ' + age + (majors? ' with ' + majors + ' risk factor' + (majors>1?'s':'') : '') + ', the right rhythm is once a year: a cholesterol and sugar blood test, a BP check, and an ECG. And if your father or a sibling had heart trouble early in life, tell your doctor — it may move you up a step.';
+      tier = 2;
+      ctxLine = 'At ' + age + (majors? ' with ' + majors + ' risk factor' + (majors>1?'s':'') : '') + ', here\'s the right rhythm:';
     } else {
-      tier = 1; vclass = 'calm';
-      vtitle = 'You\'re in good shape — build the habit now.';
-      vtext = 'No warning signs and no major risk factors at ' + age + '. A simple cholesterol + blood sugar test every 2–3 years is enough. The friends we lost were once exactly here — the habit matters more than the result.';
+      tier = 1;
+      ctxLine = "No warning signs and no major risk factors at " + age + " — you're in good shape. Here's the baseline to build on:";
     }
 
-    document.getElementById('verdict').innerHTML =
-      '<div class="verdict ' + vclass + '"><h3>' + vtitle + '</h3><p>' + vtext + '</p></div>';
+    document.getElementById('verdict').innerHTML = '<p class="context-line">' + ctxLine + '</p>';
 
     // ladder highlighting
     [1,2,3,4,5].forEach(function(i){
@@ -619,6 +686,7 @@
     if(tier !== 4 && lipid === 'unknown') notes.push('You\'ve never had (or can\'t recall) a cholesterol test. Here\'s the thing: high cholesterol has zero symptoms — feeling fine tells you nothing. A blood test is the only way anyone finds out. Make it this week\'s job; it\'s the cheapest information about your heart you\'ll ever buy.');
     if(tier !== 4 && supporting > 0) notes.push('Sitting all day / extra weight don\'t change which test you need — but they\'re the two risk factors you can fix without a prescription. 30 minutes of brisk walking, 5 days a week, genuinely moves the needle.');
     if(sex === 'm' && age >= 45 && tier === 2) notes.push('Men 45+: worth asking your doctor whether the 10-minute calcium score scan makes sense even with few risk factors — men\'s risk climbs earlier than women\'s.');
+    if(tier === 5) notes.push("Your cardiologist's LDL target for you is usually stricter than the general guideline — often below 55–70 mg/dL. Ask yours what your number is. And remember: feeling fine means the medicines are working, not that the disease is gone — never pause them without your cardiologist's go-ahead.");
     if(tier === 4) notes.push('Once a doctor has checked you and given the all-clear, come back and run this again to get your routine.');
     document.getElementById('extranote').innerHTML = notes.join('<br><br>') || 'Re-run this whenever something changes — a new diagnosis, a birthday ending in 0, or a scare in the friend circle.';
 
