@@ -551,14 +551,14 @@
   </section>
 
   <footer>
-    Made by a friend, for friends — after losing two of ours. This is general health education, not medical advice; it can't see your reports or examine you. Decisions about tests and treatment belong with you and a qualified doctor. If you have symptoms, please don't wait for a screening package.
+    Made by a friend, for friends — after losing two of ours. This is general health education, built to help you walk into a doctor's clinic asking better questions. It does not recommend specific medicines, treatments, or numerical targets — those decisions belong with you and a qualified doctor. If you have symptoms, please don't wait for a screening package.
   </footer>
 </div>
 
 <script>
   // ----- per-symptom advice (Step 1) -----
   var symptomInfo = {
-    chest: 'This is the most direct warning sign of a possible heart attack. Don\'t drive yourself anywhere. Sit or lie down, stay calm, and call 112 or 108. If you have aspirin at home and aren\'t allergic, chew (don\'t swallow) one tablet while waiting for help.',
+    chest: 'This is the most direct warning sign of a possible heart attack. Don\'t drive yourself anywhere. Sit or lie down, stay calm, and call 112 or 108 immediately. Wait for the ambulance — every minute matters, and pain that briefly eases doesn\'t mean it\'s over.',
     breath: 'New or worsening breathlessness during ordinary activities can mean the heart is struggling to pump efficiently. Don\'t push through it. See a doctor today — go to an emergency department if it gets worse or comes with chest discomfort.',
     referred: 'Pain in the jaw, arm or upper back that appears with effort and eases with rest is a classic "referred pain" pattern from blocked coronary arteries — often more reliable than chest pain itself. This needs same-day cardiac evaluation, not a future appointment.',
     faint: 'Fainting or near-fainting can mean your heart briefly failed to keep blood flowing to the brain. Even if you feel fine now, get evaluated today — an ECG and a doctor\'s exam are the minimum. If it happens again, go straight to an emergency department.',
@@ -686,7 +686,7 @@
     if(tier !== 4 && lipid === 'unknown') notes.push('You\'ve never had (or can\'t recall) a cholesterol test. Here\'s the thing: high cholesterol has zero symptoms — feeling fine tells you nothing. A blood test is the only way anyone finds out. Make it this week\'s job; it\'s the cheapest information about your heart you\'ll ever buy.');
     if(tier !== 4 && supporting > 0) notes.push('Sitting all day / extra weight don\'t change which test you need — but they\'re the two risk factors you can fix without a prescription. 30 minutes of brisk walking, 5 days a week, genuinely moves the needle.');
     if(sex === 'm' && age >= 45 && tier === 2) notes.push('Men 45+: worth asking your doctor whether the 10-minute calcium score scan makes sense even with few risk factors — men\'s risk climbs earlier than women\'s.');
-    if(tier === 5) notes.push("Your cardiologist's LDL target for you is usually stricter than the general guideline — often below 55–70 mg/dL. Ask yours what your number is. And remember: feeling fine means the medicines are working, not that the disease is gone — never pause them without your cardiologist's go-ahead.");
+    if(tier === 5) notes.push("Your cardiologist has set targets and a medicine plan specifically for you — usually stricter than what applies to the general public. Ask yours what your targets are and how close you are to them. And remember: feeling fine means the medicines are working, not that the disease is gone — never pause them without your cardiologist's go-ahead.");
     if(tier === 4) notes.push('Once a doctor has checked you and given the all-clear, come back and run this again to get your routine.');
     document.getElementById('extranote').innerHTML = notes.join('<br><br>') || 'Re-run this whenever something changes — a new diagnosis, a birthday ending in 0, or a scare in the friend circle.';
 
