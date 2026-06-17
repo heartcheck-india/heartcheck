@@ -627,6 +627,25 @@
 
   var lastSummary = '';
 
+  // Invalidate stale result whenever any Step 2 input changes,
+  // so users can't see ASCVD lingering after switching to disease history etc.
+  function invalidateResult(){
+    var r = document.getElementById('result');
+    var a = document.getElementById('ascvd');
+    if(r) r.style.display = 'none';
+    if(a) a.style.display = 'none';
+  }
+  ['age','sex','history','lipid'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el){
+      el.addEventListener('change', invalidateResult);
+      el.addEventListener('input', invalidateResult);
+    }
+  });
+  document.querySelectorAll('#factors .chip').forEach(function(c){
+    c.addEventListener('click', invalidateResult);
+  });
+
   document.getElementById('go').addEventListener('click', function(){
     var flags = document.querySelectorAll('#flags .chip[aria-pressed="true"]').length;
     var age = parseInt(document.getElementById('age').value, 10);
